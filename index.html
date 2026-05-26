@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LIFT</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #c8f135;
+    --accent-dim: rgba(200,241,53,0.12);
+    --accent-glow: rgba(200,241,53,0.25);
+    --text: #f0f0f0;
+    --muted: #666;
+    --red: #ff4d4d;
+    --blue: #4da6ff;
+    --gold: #ffc947;
+    --gold-dim: rgba(255,201,71,0.12);
+    --safe-bottom: env(safe-area-inset-bottom, 20px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: calc(80px + var(--safe-bottom));
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 3px; color: var(--accent); line-height: 1; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .bw-badge {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 20px;
+    padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text);
+    cursor: pointer; display: flex; align-items: center; gap: 5px;
+  }
+  .bw-badge span { color: var(--muted); font-weight: 400; }
+
+  /* DAY TABS */
+  .day-tabs { display: flex; gap: 8px; padding: 16px 20px 8px; overflow-x: auto; scrollbar-width: none; }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab {
+    flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 14px; border-radius: 14px; border: 1.5px solid var(--border);
+    background: var(--surface); cursor: pointer; transition: all 0.2s; min-width: 56px;
+  }
+  .day-tab.active { border-color: var(--accent); background: var(--accent-dim); }
+  .day-tab.today { border-color: var(--blue); }
+  .day-tab.done { border-color: var(--accent); background: var(--accent-dim); opacity: 0.6; }
+  .day-tab .day-letter { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--muted); transition: color 0.2s; }
+  .day-tab.active .day-letter, .day-tab.done .day-letter { color: var(--accent); }
+  .day-tab.today .day-letter { color: var(--blue); }
+  .day-tab .day-dot { width: 5px; height: 5px; border-radius: 50%; background: transparent; transition: background 0.2s; }
+  .day-tab.active .day-dot, .day-tab.done .day-dot { background: var(--accent); }
+  .day-tab.today .day-dot { background: var(--blue); }
+
+  /* PROGRESS */
+  .progress-bar-wrap { padding: 12px 20px 0; }
+  .progress-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-text { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .progress-pct { font-size: 12px; font-weight: 700; color: var(--accent); }
+  .progress-track { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+
+  /* CONTENT */
+  .content { padding: 8px 20px 16px; }
+  .day-label { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 2px; line-height: 1; margin-bottom: 4px; }
+  .day-subtitle { font-size: 13px; color: var(--muted); font-weight: 400; margin-bottom: 20px; letter-spacing: 0.3px; }
+
+  /* CARDIO */
+  .cardio-card {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1.5px solid #2d4a7a; border-radius: 20px;
+    padding: 36px 24px; text-align: center; margin-bottom: 16px;
+  }
+  .cardio-icon { font-size: 48px; margin-bottom: 12px; }
+  .cardio-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 4px; color: var(--blue); margin-bottom: 8px; }
+  .cardio-sub { font-size: 13px; color: #6a8ab8; font-weight: 400; }
+
+  /* EXERCISE CARD */
+  .exercise-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 18px; margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s;
+  }
+  .exercise-card.completed { border-color: var(--accent); background: linear-gradient(135deg, var(--surface) 0%, rgba(200,241,53,0.04) 100%); }
+  .exercise-card.has-pr { border-color: var(--gold); }
+  .exercise-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 14px; cursor: pointer; }
+  .exercise-left { flex: 1; min-width: 0; }
+  .exercise-number { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+  .exercise-name { font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .exercise-meta { font-size: 12px; color: var(--muted); margin-top: 3px; font-weight: 400; }
+  .pr-tag {
+    display: inline-block; background: var(--gold-dim); border: 1px solid var(--gold);
+    color: var(--gold); font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    padding: 2px 6px; border-radius: 6px; margin-left: 6px; vertical-align: middle;
+  }
+  .exercise-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .check-circle {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s; flex-shrink: 0;
+  }
+  .exercise-card.completed .check-circle { background: var(--accent); border-color: var(--accent); color: #000; }
+  .chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; flex-shrink: 0; }
+  .exercise-card.open .chevron { transform: rotate(180deg); }
+
+  /* EXPAND BODY */
+  .exercise-body { display: none; padding: 0 16px 16px; border-top: 1px solid var(--border); }
+  .exercise-card.open .exercise-body { display: block; }
+
+  /* WEIGHT */
+  .weight-row { display: flex; align-items: center; gap: 10px; margin: 14px 0 16px; }
+  .weight-label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; }
+  .weight-control { display: flex; align-items: center; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; flex: 1; }
+  .weight-btn { background: none; border: none; color: var(--text); font-size: 20px; padding: 10px 16px; cursor: pointer; font-weight: 300; transition: background 0.15s; flex-shrink: 0; }
+  .weight-btn:active { background: var(--border); }
+  .weight-input { background: none; border: none; color: var(--text); font-size: 18px; font-weight: 600; font-family: 'DM Sans', sans-serif; text-align: center; width: 100%; outline: none; min-width: 0; }
+  .weight-unit { font-size: 12px; color: var(--muted); padding-right: 14px; font-weight: 500; flex-shrink: 0; }
+
+  /* 1RM */
+  .orm-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 12px; margin-bottom: 14px;
+  }
+  .orm-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
+  .orm-val { font-size: 14px; font-weight: 700; color: var(--text); }
+  .orm-sub { font-size: 10px; color: var(--muted); }
+
+  /* SETS */
+  .sets-label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 10px; }
+  .sets-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+  .set-btn {
+    flex: 1; min-width: 52px; max-width: 80px; height: 52px;
+    border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface2);
+    color: var(--muted); font-size: 12px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  }
+  .set-btn .set-num { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1; }
+  .set-btn .set-label { font-size: 10px; color: var(--muted); letter-spacing: 0.3px; }
+  .set-btn.done { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+  .set-btn.done .set-num { color: var(--accent); }
+  .set-btn:active { transform: scale(0.95); }
+
+  /* NOTES */
+  .notes-wrap { margin-top: 12px; }
+  .notes-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+  .notes-input {
+    width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 10px 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; resize: none;
+    outline: none; line-height: 1.5; min-height: 56px;
+    transition: border-color 0.2s;
+  }
+  .notes-input:focus { border-color: var(--accent); }
+  .notes-input::placeholder { color: var(--muted); }
+
+  /* RECOMMENDATION */
+  .recommendation { margin-top: 14px; padding: 12px 14px; background: var(--accent-dim); border: 1px solid rgba(200,241,53,0.3); border-radius: 12px; display: none; }
+  .recommendation.show { display: block; }
+  .rec-title { font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .rec-text { font-size: 13px; color: var(--text); font-weight: 400; line-height: 1.4; }
+
+  /* PR BANNER */
+  .pr-banner {
+    margin-top: 10px; padding: 10px 14px;
+    background: var(--gold-dim); border: 1px solid rgba(255,201,71,0.4);
+    border-radius: 12px; display: none;
+  }
+  .pr-banner.show { display: flex; align-items: center; gap: 8px; }
+  .pr-banner-text { font-size: 13px; color: var(--gold); font-weight: 600; }
+
+  /* COMPLETE BUTTON */
+  .complete-btn {
+    width: 100%; margin-top: 14px; padding: 16px; border-radius: 14px; border: none;
+    background: var(--accent); color: #000; font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 2px; cursor: pointer; transition: all 0.15s; display: none;
+  }
+  .complete-btn.show { display: block; }
+  .complete-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+  /* WORKOUT DONE */
+  .workout-done { text-align: center; padding: 24px 0 8px; display: none; }
+  .workout-done.show { display: block; }
+  .done-emoji { font-size: 40px; margin-bottom: 8px; }
+  .done-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); letter-spacing: 2px; }
+  .done-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+
+
+  /* BODY WEIGHT MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    z-index: 400; display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-sheet {
+    width: 100%; background: var(--surface); border-radius: 24px 24px 0 0;
+    border: 1px solid var(--border); padding: 24px 24px calc(24px + var(--safe-bottom));
+    transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .modal-overlay.show .modal-sheet { transform: translateY(0); }
+  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .modal-input-wrap { display: flex; align-items: center; gap: 0; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+  .modal-input { background: none; border: none; color: var(--text); font-size: 32px; font-weight: 700; font-family: 'DM Sans', sans-serif; padding: 16px 20px; width: 100%; outline: none; }
+  .modal-unit { font-size: 18px; color: var(--muted); padding-right: 20px; font-weight: 500; }
+  .modal-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--accent); color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; cursor: pointer; }
+  .bw-history { margin-top: 16px; }
+  .bw-history-title { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .bw-chart { display: flex; align-items: flex-end; gap: 6px; height: 60px; }
+  .bw-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .bw-bar { width: 100%; background: var(--accent-dim); border: 1px solid rgba(200,241,53,0.2); border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.3s; }
+  .bw-bar-label { font-size: 9px; color: var(--muted); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,10,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 12px 0 calc(12px + var(--safe-bottom));
+    display: flex; justify-content: space-around; z-index: 100;
+  }
+  .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: var(--muted); cursor: pointer; padding: 0 20px; transition: color 0.2s; }
+  .nav-btn.active { color: var(--accent); }
+  .nav-icon { font-size: 20px; }
+  .nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* PANELS */
+  .panel { display: none; padding: 8px 20px 16px; }
+  .panel.active { display: block; }
+  .panel-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; margin-bottom: 16px; }
+
+  /* STATS */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 16px; }
+  .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--accent); letter-spacing: 1px; line-height: 1; }
+  .stat-name { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 4px; }
+
+  /* PR LIST */
+  .pr-list { display: flex; flex-direction: column; gap: 8px; }
+  .pr-item {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px;
+    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .pr-item-name { font-size: 13px; font-weight: 600; }
+  .pr-item-val { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); letter-spacing: 1px; }
+  .pr-item-sub { font-size: 11px; color: var(--muted); }
+
+  /* HISTORY */
+  .history-list { display: flex; flex-direction: column; gap: 10px; }
+  .history-item {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .history-day { font-weight: 600; font-size: 14px; }
+  .history-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .history-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(200,241,53,0.3); }
+
+  .section-divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .section-heading { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; margin-bottom: 12px; color: var(--muted); }
+
+  .reset-btn { width: 100%; margin-top: 16px; padding: 14px; border-radius: 14px; border: 1.5px solid var(--border); background: transparent; color: var(--red); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: calc(90px + var(--safe-bottom)); left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 18px; font-size: 13px; font-weight: 500;
+    color: var(--text); z-index: 500; opacity: 0; transition: all 0.3s; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">LIFT</div>
+  <div class="header-right">
+    <div class="bw-badge" onclick="openBWModal()">⚖️ <span id="bwDisplay">Log Weight</span></div>
+  </div>
+</div>
+
+<div class="day-tabs" id="dayTabs"></div>
+
+<div class="progress-bar-wrap" id="progressWrap" style="display:none">
+  <div class="progress-info">
+    <span class="progress-text" id="progressText">0 / 0 sets done</span>
+    <span class="progress-pct" id="progressPct">0%</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<!-- WORKOUT PANEL -->
+<div class="panel active" id="workoutPanel">
+  <div class="content" id="dayContent"></div>
+</div>
+
+<!-- STATS PANEL -->
+<div class="panel" id="statsPanel">
+  <div class="content">
+    <div class="panel-title">YOUR STATS</div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="statWorkouts">0</div>
+        <div class="stat-name">Total Workouts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statExercises">0</div>
+        <div class="stat-name">Total Exercises</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-heading">🏆 Personal Records</div>
+    <div class="pr-list" id="prList"></div>
+    <div class="section-divider"></div>
+    <div class="section-heading">📋 History</div>
+    <div class="history-list" id="historyList"></div>
+    <button class="reset-btn" onclick="resetWeek()">Reset This Week's Progress</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="navWorkout" onclick="switchPanel('workout')">
+    <span class="nav-icon">🏋️</span><span class="nav-label">Today</span>
+  </button>
+  <button class="nav-btn" id="navStats" onclick="switchPanel('stats')">
+    <span class="nav-icon">📊</span><span class="nav-label">Stats</span>
+  </button>
+</div>
+
+
+
+<!-- BODY WEIGHT MODAL -->
+<div class="modal-overlay" id="bwModal" onclick="closeBWModalOutside(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">BODY WEIGHT</div>
+    <div class="modal-sub">Log today's weight to track your progress</div>
+    <div class="modal-input-wrap">
+      <input class="modal-input" type="number" inputmode="decimal" id="bwInput" placeholder="75.0">
+      <span class="modal-unit">kg</span>
+    </div>
+    <button class="modal-btn" onclick="logBodyWeight()">LOG WEIGHT</button>
+    <div class="bw-history" id="bwHistory"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== SCHEDULE =====================
+const SCHEDULE = [
+  { day: 'MON', label: 'MONDAY', type: 'cardio' },
+  {
+    day: 'TUE', label: 'TUESDAY', type: 'workout', focus: 'PUSH',
+    exercises: [
+      { id: 'bench',      name: 'Barbell Bench Press',           sets: 4, reps: '6–8',   defaultWeight: 12.5, unit: 'kg', increment: 2.5, compound: true },
+      { id: 'ohpress',    name: 'Overhead DB Shoulder Press',    sets: 4, reps: '8–10',  defaultWeight: 12.5, unit: 'kg', increment: 2.5, compound: true },
+      { id: 'inclinedb',  name: 'Incline Dumbbell Press',        sets: 3, reps: '8–10',  defaultWeight: 12.5, unit: 'kg', increment: 2.5, compound: true },
+      { id: 'lateral',    name: 'Dumbbell Lateral Raises',       sets: 4, reps: '12–15', defaultWeight: 5,    unit: 'kg', increment: 1   },
+      { id: 'triceppush', name: 'Cable Triceps Rope Pushdown',   sets: 3, reps: '10–12', defaultWeight: 15,   unit: 'kg', increment: 2.5 },
+      { id: 'overheadtri',name: 'Overhead Triceps Extension',    sets: 3, reps: '10–12', defaultWeight: 3,    unit: 'kg', increment: 1   },
+      { id: 'chestfly',   name: 'Chest Fly / Cable Fly',         sets: 3, reps: '12–15', defaultWeight: 42,   unit: 'kg', increment: 5   },
+    ]
+  },
+  {
+    day: 'WED', label: 'WEDNESDAY', type: 'workout', focus: 'PULL',
+    exercises: [
+      { id: 'deadlift',   name: 'Deadlift',                      sets: 4, reps: '8',     defaultWeight: 60,   unit: 'kg', increment: 5,   compound: true },
+      { id: 'pullup',     name: 'Pull-ups (Weighted)',            sets: 4, reps: '8–10',  defaultWeight: 0,    unit: 'kg', increment: 2.5, compound: true },
+      { id: 'bbrow',      name: 'Barbell Row',                   sets: 4, reps: '8–10',  defaultWeight: 17.5, unit: 'kg', increment: 2.5, compound: true },
+      { id: 'facepull',   name: 'Face Pulls',                    sets: 3, reps: '12–15', defaultWeight: 18,   unit: 'kg', increment: 2.5 },
+      { id: 'dbcurl',     name: 'Dumbbell Curl',                 sets: 3, reps: '8–10',  defaultWeight: 12,   unit: 'kg', increment: 2   },
+      { id: 'inclinecurl',name: 'Incline Dumbbell Curl',         sets: 3, reps: '10–12', defaultWeight: 10,   unit: 'kg', increment: 1   },
+    ]
+  },
+  { day: 'THU', label: 'THURSDAY', type: 'cardio' },
+  {
+    day: 'FRI', label: 'FRIDAY', type: 'workout', focus: 'PUSH',
+    exercises: [
+      { id: 'bench',      name: 'Barbell Bench Press',           sets: 4, reps: '6–8',   defaultWeight: 12.5, unit: 'kg', increment: 2.5, compound: true },
+      { id: 'ohpress',    name: 'Overhead DB Shoulder Press',    sets: 4, reps: '8–10',  defaultWeight: 12.5, unit: 'kg', increment: 2.5, compound: true },
+      { id: 'inclinedb',  name: 'Incline Dumbbell Press',        sets: 3, reps: '8–10',  defaultWeight: 12.5, unit: 'kg', increment: 2.5, compound: true },
+      { id: 'lateral',    name: 'Dumbbell Lateral Raises',       sets: 4, reps: '12–15', defaultWeight: 5,    unit: 'kg', increment: 1   },
+      { id: 'triceppush', name: 'Cable Triceps Rope Pushdown',   sets: 3, reps: '10–12', defaultWeight: 15,   unit: 'kg', increment: 2.5 },
+      { id: 'overheadtri',name: 'Overhead Triceps Extension',    sets: 3, reps: '10–12', defaultWeight: 3,    unit: 'kg', increment: 1   },
+      { id: 'chestfly',   name: 'Chest Fly / Cable Fly',         sets: 3, reps: '12–15', defaultWeight: 42,   unit: 'kg', increment: 5   },
+    ]
+  },
+  { day: 'SAT', label: 'SATURDAY', type: 'cardio' },
+  {
+    day: 'SUN', label: 'SUNDAY', type: 'workout', focus: 'PULL',
+    exercises: [
+      { id: 'deadlift',   name: 'Deadlift',                      sets: 4, reps: '8',     defaultWeight: 60,   unit: 'kg', increment: 5,   compound: true },
+      { id: 'pullup',     name: 'Pull-ups (Weighted)',            sets: 4, reps: '8–10',  defaultWeight: 0,    unit: 'kg', increment: 2.5, compound: true },
+      { id: 'bbrow',      name: 'Barbell Row',                   sets: 4, reps: '8–10',  defaultWeight: 17.5, unit: 'kg', increment: 2.5, compound: true },
+      { id: 'facepull',   name: 'Face Pulls',                    sets: 3, reps: '12–15', defaultWeight: 18,   unit: 'kg', increment: 2.5 },
+      { id: 'dbcurl',     name: 'Dumbbell Curl',                 sets: 3, reps: '8–10',  defaultWeight: 12,   unit: 'kg', increment: 2   },
+      { id: 'inclinecurl',name: 'Incline Dumbbell Curl',         sets: 3, reps: '10–12', defaultWeight: 10,   unit: 'kg', increment: 1   },
+    ]
+  },
+];
+
+// ===================== STATE =====================
+function loadState() { try { return JSON.parse(localStorage.getItem('liftState2') || '{}'); } catch { return {}; } }
+function saveState(s) { localStorage.setItem('liftState2', JSON.stringify(s)); }
+
+let state = loadState();
+if (!state.weights)    state.weights    = {};
+if (!state.completed)  state.completed  = {};
+if (!state.sets)       state.sets       = {};
+if (!state.history)    state.history    = [];
+if (!state.prs)        state.prs        = {};   // { exId: { weight, orm, date } }
+if (!state.notes)      state.notes      = {};   // { `${dayKey}_${exId}`: string }
+if (!state.bodyWeight) state.bodyWeight = [];   // [{ date, weight }]
+
+let currentDayIdx = getTodayIdx();
+
+function getTodayIdx() {
+  const map = [6,0,1,2,3,4,5];
+  return map[new Date().getDay()];
+}
+
+// Weight key is exercise id only (shared across same-id days)
+function weightKey(exId) { return `w_${exId}`; }
+
+// ===================== 1RM (Epley) =====================
+function calc1RM(weight, reps) {
+  if (!weight || weight <= 0) return null;
+  const repsStr = String(reps);
+  const parts = repsStr.split(/[–\-]/);
+  const repNum = parseInt(parts[parts.length - 1]) || 8;
+  return Math.round(weight * (1 + repNum / 30) * 10) / 10;
+}
+
+// ===================== BODY WEIGHT =====================
+function openBWModal() {
+  document.getElementById('bwModal').classList.add('show');
+  renderBWHistory();
+  const last = state.bodyWeight[state.bodyWeight.length - 1];
+  if (last) document.getElementById('bwInput').value = last.weight;
+  setTimeout(() => document.getElementById('bwInput').select(), 300);
+}
+
+function closeBWModalOutside(e) {
+  if (e.target === document.getElementById('bwModal')) closeBWModal();
+}
+
+function closeBWModal() {
+  document.getElementById('bwModal').classList.remove('show');
+}
+
+function logBodyWeight() {
+  const val = parseFloat(document.getElementById('bwInput').value);
+  if (!val || val < 20 || val > 300) { showToast('Enter a valid weight'); return; }
+  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  // Replace today's entry if exists
+  const existing = state.bodyWeight.findIndex(e => e.date === today);
+  const entry = { date: today, weight: val };
+  if (existing >= 0) state.bodyWeight[existing] = entry;
+  else state.bodyWeight.push(entry);
+  if (state.bodyWeight.length > 60) state.bodyWeight = state.bodyWeight.slice(-60);
+  saveState(state);
+  updateBWBadge();
+  renderBWHistory();
+  showToast('⚖️ Weight logged!');
+  setTimeout(closeBWModal, 800);
+}
+
+function updateBWBadge() {
+  const last = state.bodyWeight[state.bodyWeight.length - 1];
+  document.getElementById('bwDisplay').textContent = last ? `${last.weight} kg` : 'Log Weight';
+}
+
+function renderBWHistory() {
+  const el = document.getElementById('bwHistory');
+  const data = state.bodyWeight.slice(-8);
+  if (data.length === 0) { el.innerHTML = ''; return; }
+  const max = Math.max(...data.map(d => d.weight));
+  const min = Math.min(...data.map(d => d.weight));
+  const range = max - min || 1;
+  el.innerHTML = `<div class="bw-history-title">Last ${data.length} entries</div>
+    <div class="bw-chart">${data.map(d => {
+      const h = Math.max(8, Math.round(((d.weight - min) / range) * 50) + 10);
+      return `<div class="bw-bar-wrap">
+        <div class="bw-bar" style="height:${h}px" title="${d.weight}kg"></div>
+        <div class="bw-bar-label">${d.date.split(' ')[0]}</div>
+      </div>`;
+    }).join('')}</div>
+    <div style="display:flex;justify-content:space-between;margin-top:10px">
+      <div style="font-size:12px;color:var(--muted)">Min: <span style="color:var(--text);font-weight:600">${min}kg</span></div>
+      <div style="font-size:12px;color:var(--muted)">Max: <span style="color:var(--text);font-weight:600">${max}kg</span></div>
+      <div style="font-size:12px;color:var(--muted)">Trend: <span style="color:${data.length>1&&data[data.length-1].weight<data[0].weight?'#c8f135':'#ff4d4d'};font-weight:600">${data.length>1?(data[data.length-1].weight-data[0].weight>0?'+':'')+(data[data.length-1].weight-data[0].weight).toFixed(1)+'kg':'—'}</span></div>
+    </div>`;
+}
+
+// ===================== RENDER =====================
+function render() { renderTabs(); renderDay(); updateBWBadge(); }
+
+function renderTabs() {
+  const todayIdx = getTodayIdx();
+  const container = document.getElementById('dayTabs');
+  container.innerHTML = '';
+  SCHEDULE.forEach((d, i) => {
+    const div = document.createElement('div');
+    div.className = 'day-tab' +
+      (i === currentDayIdx ? ' active' : '') +
+      (i === todayIdx && i !== currentDayIdx ? ' today' : '') +
+      (state.completed[i] && i !== currentDayIdx ? ' done' : '');
+    div.innerHTML = `<span class="day-letter">${d.day}</span><div class="day-dot"></div>`;
+    div.onclick = () => { currentDayIdx = i; render(); };
+    container.appendChild(div);
+  });
+  setTimeout(() => {
+    const active = container.querySelector('.active');
+    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, 50);
+}
+
+function renderDay() {
+  const day = SCHEDULE[currentDayIdx];
+  const content = document.getElementById('dayContent');
+  const progressWrap = document.getElementById('progressWrap');
+
+  if (day.type === 'cardio') {
+    progressWrap.style.display = 'none';
+    content.innerHTML = `
+      <div class="day-label">${day.label}</div>
+      <div class="day-subtitle">Active Recovery</div>
+      <div class="cardio-card">
+        <div class="cardio-icon">🏃</div>
+        <div class="cardio-title">CARDIO DAY</div>
+        <div class="cardio-sub">Your personal cardio plan</div>
+      </div>`;
+    return;
+  }
+
+  progressWrap.style.display = 'block';
+  const exercises = day.exercises;
+  const dayKey = currentDayIdx;
+  const completedSets = state.sets[dayKey] || {};
+  const totalSets = exercises.reduce((a, e) => a + e.sets, 0);
+  const doneSets = Object.values(completedSets).reduce((a, v) => a + (Array.isArray(v) ? v.filter(Boolean).length : 0), 0);
+  const pct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${doneSets} / ${totalSets} sets done`;
+  document.getElementById('progressPct').textContent = pct + '%';
+
+  const allDone = state.completed[dayKey];
+
+  let html = `<div class="day-label">${day.label}</div>`;
+  html += `<div class="day-subtitle">${day.focus} Day · ${exercises.length} exercises</div>`;
+
+  if (allDone) {
+    html += `<div class="workout-done show"><div class="done-emoji">🔥</div><div class="done-title">WORKOUT COMPLETE</div><div class="done-sub">Great work. Rest up and come back stronger.</div></div>`;
+  }
+
+  exercises.forEach((ex, ei) => {
+    const weight = state.weights[weightKey(ex.id)] ?? ex.defaultWeight;
+    const setsArr = completedSets[ex.id] || Array(ex.sets).fill(false);
+    const allSetsDone = setsArr.every(Boolean) && setsArr.length === ex.sets;
+    const noteKey = `${dayKey}_${ex.id}`;
+    const note = state.notes[noteKey] || '';
+    const orm = calc1RM(weight, ex.reps);
+    const pr = state.prs[ex.id];
+    const isPR = allSetsDone && pr && orm && orm > pr.orm;
+
+    html += `<div class="exercise-card${allSetsDone ? ' completed' : ''}${isPR ? ' has-pr' : ''}" id="card_${dayKey}_${ei}">
+      <div class="exercise-header" onclick="toggleCard(${dayKey},${ei})">
+        <div class="exercise-left">
+          <div class="exercise-number">EXERCISE ${ei + 1}</div>
+          <div class="exercise-name">${ex.name}${isPR ? '<span class="pr-tag">🏆 PR</span>' : ''}</div>
+          <div class="exercise-meta">${ex.sets} sets · ${ex.reps} reps · ${weight}${ex.unit}${orm ? ' · 1RM ~' + orm + 'kg' : ''}</div>
+        </div>
+        <div class="exercise-right">
+          <div class="check-circle">${allSetsDone ? '✓' : ''}</div>
+          <div class="chevron">▼</div>
+        </div>
+      </div>
+      <div class="exercise-body">
+        <div class="weight-row">
+          <span class="weight-label">Weight</span>
+          <div class="weight-control">
+            <button class="weight-btn" onclick="adjustWeight(${dayKey},'${ex.id}',${-ex.increment},${ei},${ex.defaultWeight})">−</button>
+            <input class="weight-input" type="number" inputmode="decimal" value="${weight}"
+              onchange="setWeight(${dayKey},'${ex.id}',this.value,${ei})"
+              onclick="this.select()">
+            <span class="weight-unit">${ex.unit}</span>
+            <button class="weight-btn" onclick="adjustWeight(${dayKey},'${ex.id}',${ex.increment},${ei},${ex.defaultWeight})">+</button>
+          </div>
+        </div>
+        ${orm ? `<div class="orm-row">
+          <div><div class="orm-label">Est. 1 Rep Max</div><div class="orm-sub">Epley formula</div></div>
+          <div style="text-align:right"><div class="orm-val">${orm} kg</div>${pr ? `<div class="orm-sub">Best: ${pr.orm}kg</div>` : ''}</div>
+        </div>` : ''}
+        <div class="sets-label">TAP SETS AS YOU COMPLETE</div>
+        <div class="sets-grid">
+          ${Array.from({length: ex.sets}, (_, si) => {
+            return `<button class="set-btn${setsArr[si] ? ' done' : ''}" onclick="toggleSet(${dayKey},&quot;${ex.id}&quot;,${si},${ei},${ex.sets})">
+              <span class="set-num">${si + 1}</span>
+              <span class="set-label">${setsArr[si] ? 'DONE' : 'SET'}</span>
+            </button>`;
+          }).join('')}
+        </div>
+        <div class="pr-banner${isPR ? ' show' : ''}" id="pr_${dayKey}_${ei}">
+          <span style="font-size:20px">🏆</span>
+          <span class="pr-banner-text">New Personal Record! ${orm}kg estimated 1RM</span>
+        </div>
+        <div class="recommendation${allSetsDone ? ' show' : ''}" id="rec_${dayKey}_${ei}">
+          <div class="rec-title">💡 Progression Ready</div>
+          <div class="rec-text">All sets done! Next session try <strong>${(weight + ex.increment).toFixed(1)}${ex.unit}</strong> (+${ex.increment}${ex.unit} progressive overload)</div>
+        </div>
+        <div class="notes-wrap">
+          <div class="notes-label">Notes</div>
+          <textarea class="notes-input" placeholder="Form cues, how it felt, adjustments…" 
+            onchange="saveNote(${dayKey},'${ex.id}',this.value)"
+            onblur="saveNote(${dayKey},'${ex.id}',this.value)">${note}</textarea>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  const allExDone = exercises.every(ex => {
+    const sArr = (state.sets[dayKey] || {})[ex.id] || [];
+    return sArr.length === ex.sets && sArr.every(Boolean);
+  });
+
+  if (!allDone) {
+    html += `<button class="complete-btn${allExDone ? ' show' : ''}" id="completeBtn" onclick="completeWorkout(${dayKey})">MARK WORKOUT COMPLETE</button>`;
+  }
+
+  content.innerHTML = html;
+
+  if (!allDone) {
+    const firstIncomplete = exercises.findIndex(ex => {
+      const sArr = (state.sets[dayKey] || {})[ex.id] || [];
+      return !(sArr.length === ex.sets && sArr.every(Boolean));
+    });
+    const openIdx = firstIncomplete >= 0 ? firstIncomplete : 0;
+    const card = document.getElementById(`card_${dayKey}_${openIdx}`);
+    if (card) card.classList.add('open');
+  }
+}
+
+function toggleCard(dayKey, ei) {
+  const card = document.getElementById(`card_${dayKey}_${ei}`);
+  if (card) card.classList.toggle('open');
+}
+
+function adjustWeight(dayKey, exId, delta, ei, def) {
+  const k = weightKey(exId);
+  const cur = parseFloat(state.weights[k] ?? def);
+  state.weights[k] = Math.max(0, parseFloat((cur + delta).toFixed(2)));
+  saveState(state);
+  renderDay();
+  const card = document.getElementById(`card_${dayKey}_${ei}`);
+  if (card) card.classList.add('open');
+}
+
+function setWeight(dayKey, exId, val, ei) {
+  state.weights[weightKey(exId)] = Math.max(0, parseFloat(val) || 0);
+  saveState(state);
+  renderDay();
+  const card = document.getElementById(`card_${dayKey}_${ei}`);
+  if (card) card.classList.add('open');
+}
+
+function toggleSet(dayKey, exId, setIdx, ei, totalSets) {
+  if (!state.sets[dayKey]) state.sets[dayKey] = {};
+  if (!state.sets[dayKey][exId]) state.sets[dayKey][exId] = Array(totalSets).fill(false);
+  state.sets[dayKey][exId][setIdx] = !state.sets[dayKey][exId][setIdx];
+  saveState(state);
+
+  // Check PR after completing all sets
+  const day = SCHEDULE[dayKey];
+  if (day && day.exercises) {
+    const ex = day.exercises[ei];
+    if (ex) {
+      const sArr = state.sets[dayKey][exId];
+      const allDone = sArr && sArr.length === totalSets && sArr.every(Boolean);
+      if (allDone) {
+        const weight = state.weights[weightKey(exId)] ?? ex.defaultWeight;
+        const orm = calc1RM(weight, ex.reps);
+        const prev = state.prs[exId];
+        if (orm && (!prev || orm > prev.orm)) {
+          state.prs[exId] = { weight, orm, date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'}) };
+          saveState(state);
+          showToast('🏆 New PR on ' + ex.name + '!');
+        }
+      }
+    }
+  }
+
+  renderDay();
+  const card = document.getElementById(`card_${dayKey}_${ei}`);
+  if (card) card.classList.add('open');
+}
+
+function saveNote(dayKey, exId, val) {
+  state.notes[`${dayKey}_${exId}`] = val;
+  saveState(state);
+}
+
+function completeWorkout(dayKey) {
+  state.completed[dayKey] = true;
+  const day = SCHEDULE[dayKey];
+  state.history.unshift({
+    day: day.label, focus: day.focus,
+    date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+    exercises: day.exercises.length
+  });
+  if (state.history.length > 50) state.history = state.history.slice(0, 50);
+  saveState(state);
+  showToast('💪 Workout logged!');
+  renderDay();
+}
+
+function resetWeek() {
+  if (!confirm('Reset all progress for this week?')) return;
+  state.completed = {};
+  state.sets = {};
+  saveState(state);
+  render();
+  showToast('Week reset!');
+}
+
+function renderStats() {
+  const totalWorkouts = state.history.length;
+  const totalExercises = state.history.reduce((a, h) => a + (h.exercises || 0), 0);
+  document.getElementById('statWorkouts').textContent = totalWorkouts;
+  document.getElementById('statExercises').textContent = totalExercises;
+
+  // PRs
+  const prList = document.getElementById('prList');
+  const prEntries = Object.entries(state.prs);
+  if (prEntries.length === 0) {
+    prList.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Complete exercises to set personal records!</div>';
+  } else {
+    // Map exId to name
+    const nameMap = {};
+    SCHEDULE.forEach(d => { if (d.exercises) d.exercises.forEach(e => { nameMap[e.id] = e.name; }); });
+    prList.innerHTML = prEntries.sort((a,b) => b[1].orm - a[1].orm).map(([id, pr]) => `
+      <div class="pr-item">
+        <div>
+          <div class="pr-item-name">${nameMap[id] || id}</div>
+          <div class="pr-item-sub">${pr.date} · ${pr.weight}kg lifted</div>
+        </div>
+        <div style="text-align:right">
+          <div class="pr-item-val">${pr.orm}kg</div>
+          <div class="pr-item-sub">est. 1RM</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // History
+  const historyList = document.getElementById('historyList');
+  if (state.history.length === 0) {
+    historyList.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0">No workouts logged yet. Get after it!</div>';
+  } else {
+    historyList.innerHTML = state.history.slice(0, 15).map(h => `
+      <div class="history-item">
+        <div>
+          <div class="history-day">${h.day}</div>
+          <div class="history-meta">${h.date} · ${h.exercises} exercises</div>
+        </div>
+        <div class="history-badge">${h.focus}</div>
+      </div>`).join('');
+  }
+}
+
+function switchPanel(panel) {
+  document.getElementById('workoutPanel').classList.toggle('active', panel === 'workout');
+  document.getElementById('statsPanel').classList.toggle('active', panel === 'stats');
+  document.getElementById('navWorkout').classList.toggle('active', panel === 'workout');
+  document.getElementById('navStats').classList.toggle('active', panel === 'stats');
+  document.getElementById('progressWrap').style.display =
+    panel === 'workout' && SCHEDULE[currentDayIdx].type === 'workout' ? 'block' : 'none';
+  if (panel === 'stats') renderStats();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
