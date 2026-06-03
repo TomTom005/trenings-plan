@@ -169,54 +169,59 @@
   .notes-input:focus { border-color: var(--accent); }
   .notes-input::placeholder { color: var(--muted); }
 
-  /* RENAME MODAL */
-  .rename-overlay {
+  /* EDIT EXERCISE SHEET */
+  .edit-overlay {
     position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,0.8);
     z-index: 450; display: flex; align-items: flex-end;
     opacity: 0; pointer-events: none; transition: opacity 0.25s;
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   }
-  .rename-overlay.show { opacity: 1; pointer-events: all; }
-  .rename-sheet {
+  .edit-overlay.show { opacity: 1; pointer-events: all; }
+  .edit-sheet {
     width: 100%; background: var(--surface); border-radius: 24px 24px 0 0;
-    border: 1px solid var(--border); padding: 24px 24px calc(24px + var(--safe-bottom));
+    border: 1px solid var(--border); padding: 24px 24px calc(28px + var(--safe-bottom));
     transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
   }
-  .rename-overlay.show .rename-sheet { transform: translateY(0); }
-  .rename-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
-  .rename-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; margin-bottom: 6px; }
-  .rename-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-  .rename-input {
+  .edit-overlay.show .edit-sheet { transform: translateY(0); }
+  .edit-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
+  .edit-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; margin-bottom: 18px; color: var(--text); }
+  .edit-field-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; }
+  .edit-field-input {
     width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
-    border-radius: 14px; padding: 14px 16px; color: var(--text);
-    font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 600;
-    outline: none; margin-bottom: 12px; transition: border-color 0.2s;
+    border-radius: 12px; padding: 13px 15px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500;
+    outline: none; margin-bottom: 16px; transition: border-color 0.2s;
+    -webkit-appearance: none; appearance: none;
   }
-  .rename-input:focus { border-color: var(--accent); }
-  .rename-actions { display: flex; gap: 10px; }
-  .rename-cancel {
+  .edit-field-input:focus { border-color: var(--accent); }
+  .edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .edit-row .edit-field-input { margin-bottom: 0; }
+  .edit-row-wrap { margin-bottom: 16px; }
+  .edit-actions { display: flex; gap: 10px; margin-top: 4px; }
+  .edit-cancel {
     flex: 1; padding: 14px; border-radius: 14px; border: 1.5px solid var(--border);
     background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif;
     font-size: 15px; font-weight: 600; cursor: pointer;
   }
-  .rename-save {
+  .edit-save {
     flex: 2; padding: 14px; border-radius: 14px; border: none;
     background: var(--accent); color: #000; font-family: 'Bebas Neue', sans-serif;
     font-size: 20px; letter-spacing: 2px; cursor: pointer;
   }
-  .rename-reset {
+  .edit-reset {
     width: 100%; margin-top: 10px; padding: 12px; border-radius: 12px;
     border: 1px solid var(--border); background: transparent;
     color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
   }
 
-  /* EDIT PENCIL */
-  .edit-name-btn {
-    background: none; border: none; color: var(--muted); font-size: 13px;
-    cursor: pointer; padding: 2px 4px; margin-left: 4px; vertical-align: middle;
-    opacity: 0.6; transition: opacity 0.2s;
+  /* EXERCISE CARD EDIT BUTTON */
+  .ex-edit-btn {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--muted); font-size: 13px; padding: 5px 8px;
+    cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+    line-height: 1;
   }
-  .edit-name-btn:active { opacity: 1; }
+  .ex-edit-btn:active { background: var(--surface2); color: var(--text); }
 
   /* RECOMMENDATION */
   .recommendation { margin-top: 14px; padding: 12px 14px; background: var(--accent-dim); border: 1px solid rgba(200,241,53,0.3); border-radius: 12px; display: none; }
@@ -528,18 +533,25 @@
   </div>
 </div>
 
-<!-- RENAME EXERCISE MODAL -->
-<div class="rename-overlay" id="renameModal" onclick="closeRenameOutside(event)">
-  <div class="rename-sheet">
-    <div class="rename-handle"></div>
-    <div class="rename-title">RENAME EXERCISE</div>
-    <div class="rename-sub" id="renameSub">Applies to both sessions this week</div>
-    <input class="rename-input" type="text" id="renameInput" placeholder="Exercise name" maxlength="60">
-    <div class="rename-actions">
-      <button class="rename-cancel" onclick="closeRenameModal()">Cancel</button>
-      <button class="rename-save" onclick="saveRename()">SAVE</button>
+<!-- EDIT EXERCISE SHEET -->
+<div class="edit-overlay" id="editModal" onclick="closeEditOutside(event)">
+  <div class="edit-sheet">
+    <div class="edit-handle"></div>
+    <div class="edit-title" id="editTitle">EDIT EXERCISE</div>
+    <div class="edit-field-label">Exercise Name</div>
+    <input class="edit-field-input" type="text" id="editName" placeholder="Exercise name" maxlength="60" autocomplete="off">
+    <div class="edit-row-wrap">
+      <div class="edit-field-label">Sets &amp; Reps</div>
+      <div class="edit-row">
+        <input class="edit-field-input" type="number" inputmode="numeric" id="editSets" placeholder="Sets (e.g. 4)" min="1" max="20">
+        <input class="edit-field-input" type="text" id="editReps" placeholder="Reps (e.g. 8–10)" maxlength="20" autocomplete="off">
+      </div>
     </div>
-    <button class="rename-reset" onclick="resetRename()">Reset to default name</button>
+    <div class="edit-actions">
+      <button class="edit-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="edit-save" onclick="saveEdit()">SAVE</button>
+    </div>
+    <button class="edit-reset" onclick="resetEdit()">Reset to defaults</button>
   </div>
 </div>
 
@@ -630,6 +642,27 @@ if (!state.names)            state.names            = {};
 if (!state.customExercises)  state.customExercises  = {};
 if (!state.removedExercises) state.removedExercises = {};
 if (!state.appliedIncreases) state.appliedIncreases = {};
+if (!state.overrides)        state.overrides        = {};
+
+// ── Auto week reset ───────────────────────────────────────────────────────
+// Get the ISO date string of the most recent Monday (week anchor)
+function getWeekKey() {
+  var d = new Date();
+  var day = d.getDay(); // 0=Sun … 6=Sat
+  var diff = (day === 0) ? -6 : 1 - day; // days back to Monday
+  d.setDate(d.getDate() + diff);
+  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+
+var thisWeekKey = getWeekKey();
+if (state.weekKey !== thisWeekKey) {
+  // New week — wipe per-week progress but keep weights, PRs, history, names, etc.
+  state.weekKey          = thisWeekKey;
+  state.completed        = {};
+  state.sets             = {};
+  state.appliedIncreases = {};
+  saveState(state);
+}
 
 let currentDayIdx = getTodayIdx();
 
@@ -639,58 +672,90 @@ function getTodayIdx() {
 }
 
 // Weight key is exercise id only (shared across same-id days)
-function weightKey(exId) { return `w_${exId}`; }
+function weightKey(exId) { return 'w_' + exId; }
 
-// Get display name — custom if set, else default
-function exName(ex) { return state.names[ex.id] || ex.name; }
+// Get display name / sets / reps — override if set, else default
+function exName(ex) {
+  var ov = state.overrides && state.overrides[ex.id];
+  return (ov && ov.name) ? ov.name : ex.name;
+}
+function exSets(ex) {
+  var ov = state.overrides && state.overrides[ex.id];
+  return (ov && ov.sets) ? ov.sets : ex.sets;
+}
+function exReps(ex) {
+  var ov = state.overrides && state.overrides[ex.id];
+  return (ov && ov.reps) ? ov.reps : ex.reps;
+}
 
-// ===================== RENAME =====================
-let _renameExId = null;
-let _renameDefault = '';
+// ===================== EDIT EXERCISE =====================
+let _editExId = null;
+let _editDefaults = null; // { name, sets, reps }
 
-function openRenameModal(exId, defaultName) {
-  _renameExId = exId;
-  _renameDefault = defaultName;
-  document.getElementById('renameInput').value = state.names[exId] || defaultName;
-  document.getElementById('renameSub').textContent =
-    'Shared across all sessions with this exercise';
-  document.getElementById('renameModal').classList.add('show');
-  setTimeout(() => {
-    const inp = document.getElementById('renameInput');
+function openEditModal(exId, defName, defSets, defReps) {
+  _editExId = exId;
+  _editDefaults = { name: defName, sets: defSets, reps: defReps };
+  const ov = state.overrides && state.overrides[exId];
+  document.getElementById('editTitle').textContent = 'EDIT EXERCISE';
+  document.getElementById('editName').value  = (ov && ov.name != null) ? ov.name  : defName;
+  document.getElementById('editSets').value  = (ov && ov.sets != null) ? ov.sets  : defSets;
+  document.getElementById('editReps').value  = (ov && ov.reps != null) ? ov.reps  : defReps;
+  document.getElementById('editModal').classList.add('show');
+  setTimeout(function() {
+    var inp = document.getElementById('editName');
     inp.focus(); inp.select();
-  }, 350);
+  }, 320);
 }
 
-function closeRenameOutside(e) {
-  if (e.target === document.getElementById('renameModal')) closeRenameModal();
+function closeEditOutside(e) {
+  if (e.target === document.getElementById('editModal')) closeEditModal();
 }
 
-function closeRenameModal() {
-  document.getElementById('renameModal').classList.remove('show');
-  _renameExId = null;
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('show');
+  _editExId = null;
+  _editDefaults = null;
 }
 
-function saveRename() {
-  const val = document.getElementById('renameInput').value.trim();
-  if (!val || !_renameExId) { closeRenameModal(); return; }
-  if (val === _renameDefault) {
-    delete state.names[_renameExId];
+function saveEdit() {
+  if (!_editExId) { closeEditModal(); return; }
+  var name  = document.getElementById('editName').value.trim();
+  var sets  = parseInt(document.getElementById('editSets').value) || null;
+  var reps  = document.getElementById('editReps').value.trim();
+  if (!name) { showToast('Enter an exercise name'); return; }
+
+  if (!state.overrides) state.overrides = {};
+  var ov = state.overrides[_editExId] || {};
+  ov.name = (name !== _editDefaults.name) ? name : null;
+  ov.sets = (sets && sets !== _editDefaults.sets) ? sets : null;
+  ov.reps = (reps && reps !== _editDefaults.reps) ? reps : null;
+
+  // Clean up if everything is back to default
+  if (!ov.name && !ov.sets && !ov.reps) {
+    delete state.overrides[_editExId];
   } else {
-    state.names[_renameExId] = val;
+    state.overrides[_editExId] = ov;
+  }
+  // Keep names in sync for legacy / PR display
+  if (ov.name) {
+    state.names[_editExId] = ov.name;
+  } else {
+    delete state.names[_editExId];
   }
   saveState(state);
-  closeRenameModal();
+  closeEditModal();
   renderDay();
-  showToast('Exercise renamed!');
+  showToast('Exercise updated!');
 }
 
-function resetRename() {
-  if (!_renameExId) return;
-  delete state.names[_renameExId];
+function resetEdit() {
+  if (!_editExId) return;
+  if (state.overrides) delete state.overrides[_editExId];
+  delete state.names[_editExId];
   saveState(state);
-  closeRenameModal();
+  closeEditModal();
   renderDay();
-  showToast('Name reset to default');
+  showToast('Reset to defaults');
 }
 
 // ===================== MANAGE EXERCISES =====================
@@ -959,7 +1024,7 @@ function renderDay() {
   const exercises = getEffectiveExercises(currentDayIdx);
   const dayKey = currentDayIdx;
   const completedSets = state.sets[dayKey] || {};
-  const totalSets = exercises.reduce((a, e) => a + e.sets, 0);
+  const totalSets = exercises.reduce((a, e) => a + exSets(e), 0);
   const doneSets = Object.values(completedSets).reduce((a, v) => a + (Array.isArray(v) ? v.filter(Boolean).length : 0), 0);
   const pct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
   document.getElementById('progressFill').style.width = pct + '%';
@@ -980,29 +1045,29 @@ function renderDay() {
 
   exercises.forEach((ex, ei) => {
     const weight = state.weights[weightKey(ex.id)] != null ? state.weights[weightKey(ex.id)] : ex.defaultWeight;
-    const setsArr = completedSets[ex.id] || Array(ex.sets).fill(false);
-    const allSetsDone = setsArr.every(Boolean) && setsArr.length === ex.sets;
+    const sets = exSets(ex);
+    const reps = exReps(ex);
+    const setsArr = completedSets[ex.id] || Array(sets).fill(false);
+    const allSetsDone = setsArr.every(Boolean) && setsArr.length === sets;
     const noteKey = `${dayKey}_${ex.id}`;
     const note = state.notes[noteKey] || '';
-    const orm = calc1RM(weight, ex.reps);
+    const orm = calc1RM(weight, reps);
     const pr = state.prs[ex.id];
     const isPR = allSetsDone && pr && orm && orm > pr.orm;
 
     const displayName = exName(ex);
-    const isCustom = !!state.names[ex.id];
-    const safeDef = ex.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const safeName = ex.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    const safeReps = ex.reps.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
 
     html += `<div class="exercise-card${allSetsDone ? ' completed' : ''}${isPR ? ' has-pr' : ''}" id="card_${dayKey}_${ei}">
       <div class="exercise-header" onclick="toggleCard(${dayKey},${ei})">
         <div class="exercise-left">
-          <div class="exercise-number">EXERCISE ${ei + 1}${isCustom ? ' · EDITED' : ''}</div>
-          <div class="exercise-name">
-            ${displayName}${isPR ? '<span class="pr-tag">🏆 PR</span>' : ''}
-            <button class="edit-name-btn" onclick="event.stopPropagation();openRenameModal('${ex.id}','${safeDef}')" title="Rename exercise">✏️</button>
-          </div>
-          <div class="exercise-meta">${ex.sets} sets · ${ex.reps} reps · ${weight}${ex.unit}${orm ? ' · 1RM ~' + orm + 'kg' : ''}</div>
+          <div class="exercise-number">EXERCISE ${ei + 1}</div>
+          <div class="exercise-name">${displayName}${isPR ? '<span class="pr-tag">🏆 PR</span>' : ''}</div>
+          <div class="exercise-meta">${sets} sets · ${reps} reps · ${weight}${ex.unit}${orm ? ' · 1RM ~' + orm + 'kg' : ''}</div>
         </div>
         <div class="exercise-right">
+          <button class="ex-edit-btn" onclick="event.stopPropagation();openEditModal(&quot;${ex.id}&quot;,&quot;${safeName}&quot;,${ex.sets},&quot;${safeReps}&quot;)">✏️</button>
           <div class="check-circle">${allSetsDone ? '✓' : ''}</div>
           <div class="chevron">▼</div>
         </div>
@@ -1025,8 +1090,8 @@ function renderDay() {
         </div>` : ''}
         <div class="sets-label">TAP SETS AS YOU COMPLETE</div>
         <div class="sets-grid">
-          ${Array.from({length: ex.sets}, (_, si) => {
-            return `<button class="set-btn${setsArr[si] ? ' done' : ''}" onclick="toggleSet(${dayKey},&quot;${ex.id}&quot;,${si},${ei},${ex.sets})">
+          ${Array.from({length: sets}, (_, si) => {
+            return `<button class="set-btn${setsArr[si] ? ' done' : ''}" onclick="toggleSet(${dayKey},&quot;${ex.id}&quot;,${si},${ei},${sets})">
               <span class="set-num">${si + 1}</span>
               <span class="set-label">${setsArr[si] ? 'DONE' : 'SET'}</span>
             </button>`;
@@ -1057,8 +1122,9 @@ function renderDay() {
   });
 
   const allExDone = exercises.every(ex => {
+    const s = exSets(ex);
     const sArr = (state.sets[dayKey] || {})[ex.id] || [];
-    return sArr.length === ex.sets && sArr.every(Boolean);
+    return sArr.length === s && sArr.every(Boolean);
   });
 
   if (!allDone) {
@@ -1069,8 +1135,9 @@ function renderDay() {
 
   if (!allDone) {
     const firstIncomplete = exercises.findIndex(ex => {
+      const s = exSets(ex);
       const sArr = (state.sets[dayKey] || {})[ex.id] || [];
-      return !(sArr.length === ex.sets && sArr.every(Boolean));
+      return !(sArr.length === s && sArr.every(Boolean));
     });
     const openIdx = firstIncomplete >= 0 ? firstIncomplete : 0;
     const card = document.getElementById(`card_${dayKey}_${openIdx}`);
@@ -1117,7 +1184,7 @@ function toggleSet(dayKey, exId, setIdx, ei, totalSets) {
       const allDone = sArr && sArr.length === totalSets && sArr.every(Boolean);
       if (allDone) {
         const weight = state.weights[weightKey(exId)] != null ? state.weights[weightKey(exId)] : ex.defaultWeight;
-        const orm = calc1RM(weight, ex.reps);
+        const orm = calc1RM(weight, exReps(ex));
         const prev = state.prs[exId];
         if (orm && (!prev || orm > prev.orm)) {
           state.prs[exId] = { weight, orm, date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'}) };
@@ -1153,9 +1220,10 @@ function completeWorkout(dayKey) {
 }
 
 function resetWeek() {
-  state.completed = {};
-  state.sets = {};
+  state.completed        = {};
+  state.sets             = {};
   state.appliedIncreases = {};
+  state.weekKey          = getWeekKey();
   saveState(state);
   render();
   showToast('Week reset!');
