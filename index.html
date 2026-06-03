@@ -34,7 +34,7 @@
 
   /* HEADER */
   .header {
-    position: sticky; top: 0; z-index: 100;
+    position: -webkit-sticky; position: sticky; top: 0; z-index: 100;
     background: rgba(10,10,10,0.92);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
@@ -162,12 +162,61 @@
   .notes-input {
     width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
     border-radius: 10px; padding: 10px 12px; color: var(--text);
-    font-family: 'DM Sans', sans-serif; font-size: 13px; resize: none;
+    font-family: 'DM Sans', sans-serif; font-size: 16px; resize: none;
     outline: none; line-height: 1.5; min-height: 56px;
     transition: border-color 0.2s;
   }
   .notes-input:focus { border-color: var(--accent); }
   .notes-input::placeholder { color: var(--muted); }
+
+  /* RENAME MODAL */
+  .rename-overlay {
+    position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,0.8);
+    z-index: 450; display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .rename-overlay.show { opacity: 1; pointer-events: all; }
+  .rename-sheet {
+    width: 100%; background: var(--surface); border-radius: 24px 24px 0 0;
+    border: 1px solid var(--border); padding: 24px 24px calc(24px + var(--safe-bottom));
+    transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .rename-overlay.show .rename-sheet { transform: translateY(0); }
+  .rename-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+  .rename-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; margin-bottom: 6px; }
+  .rename-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .rename-input {
+    width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 14px 16px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 600;
+    outline: none; margin-bottom: 12px; transition: border-color 0.2s;
+  }
+  .rename-input:focus { border-color: var(--accent); }
+  .rename-actions { display: flex; gap: 10px; }
+  .rename-cancel {
+    flex: 1; padding: 14px; border-radius: 14px; border: 1.5px solid var(--border);
+    background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .rename-save {
+    flex: 2; padding: 14px; border-radius: 14px; border: none;
+    background: var(--accent); color: #000; font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; letter-spacing: 2px; cursor: pointer;
+  }
+  .rename-reset {
+    width: 100%; margin-top: 10px; padding: 12px; border-radius: 12px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+  }
+
+  /* EDIT PENCIL */
+  .edit-name-btn {
+    background: none; border: none; color: var(--muted); font-size: 13px;
+    cursor: pointer; padding: 2px 4px; margin-left: 4px; vertical-align: middle;
+    opacity: 0.6; transition: opacity 0.2s;
+  }
+  .edit-name-btn:active { opacity: 1; }
 
   /* RECOMMENDATION */
   .recommendation { margin-top: 14px; padding: 12px 14px; background: var(--accent-dim); border: 1px solid rgba(200,241,53,0.3); border-radius: 12px; display: none; }
@@ -204,7 +253,7 @@
 
   /* BODY WEIGHT MODAL */
   .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,0.8);
     z-index: 400; display: flex; align-items: flex-end;
     opacity: 0; pointer-events: none; transition: opacity 0.25s;
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -279,6 +328,93 @@
 
   .reset-btn { width: 100%; margin-top: 16px; padding: 14px; border-radius: 14px; border: 1.5px solid var(--border); background: transparent; color: var(--red); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
 
+  /* MANAGE EXERCISES SHEET */
+  .manage-overlay {
+    position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,0.85);
+    z-index: 460; display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .manage-overlay.show { opacity: 1; pointer-events: all; }
+  .manage-sheet {
+    width: 100%; background: var(--surface); border-radius: 24px 24px 0 0;
+    border: 1px solid var(--border);
+    max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    padding-bottom: calc(16px + var(--safe-bottom));
+  }
+  .manage-overlay.show .manage-sheet { transform: translateY(0); }
+  .manage-header {
+    position: -webkit-sticky; position: sticky; top: 0; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 14px; z-index: 1;
+  }
+  .manage-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
+  .manage-title-row { display: flex; align-items: center; justify-content: space-between; }
+  .manage-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; }
+  .manage-close { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 0 4px; }
+  .manage-body { padding: 16px 20px 0; }
+  .manage-ex-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .manage-ex-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 12px 14px;
+  }
+  .manage-ex-info { flex: 1; min-width: 0; }
+  .manage-ex-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .manage-ex-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .manage-remove-btn {
+    background: none; border: 1.5px solid rgba(255,77,77,0.3); border-radius: 10px;
+    color: var(--red); font-size: 18px; width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+  }
+  .manage-remove-btn:active { background: rgba(255,77,77,0.1); }
+
+  /* ADD EXERCISE FORM */
+  .add-ex-section { border-top: 1px solid var(--border); padding-top: 16px; }
+  .add-ex-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; }
+  .add-field-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 5px; }
+  .add-field-input {
+    width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500;
+    outline: none; margin-bottom: 12px; transition: border-color 0.2s;
+  }
+  .add-field-input:focus { border-color: var(--accent); }
+  .add-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .add-field-group { display: flex; flex-direction: column; }
+  .add-ex-btn {
+    width: 100%; padding: 15px; border-radius: 14px; border: none;
+    background: var(--accent); color: #000; font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; letter-spacing: 2px; cursor: pointer; margin-top: 4px;
+  }
+  .add-ex-btn:active { opacity: 0.9; transform: scale(0.98); }
+
+  /* MANAGE DAY BUTTON (shown in day subtitle area) */
+  .manage-day-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 20px;
+    padding: 5px 12px; font-size: 11px; font-weight: 600; color: var(--muted);
+    cursor: pointer; margin-bottom: 16px; letter-spacing: 0.3px;
+  }
+  .manage-day-btn:active { background: var(--border); }
+
+  /* APPLY WEIGHT BUTTON */
+  .apply-weight-btn {
+    width: 100%; margin-top: 10px; padding: 14px 16px; border-radius: 14px;
+    background: linear-gradient(135deg, #1a2a0a, #1e3210);
+    border: 1.5px solid rgba(200,241,53,0.4);
+    color: var(--accent); font-family: 'Bebas Neue', sans-serif;
+    font-size: 19px; letter-spacing: 2px; cursor: pointer; transition: all 0.15s;
+    display: none;
+  }
+  .apply-weight-btn.show { display: block; }
+  .apply-weight-btn:active { opacity: 0.85; transform: scale(0.98); }
+  .apply-weight-btn.applied {
+    background: var(--surface2); border-color: var(--border);
+    color: var(--muted); pointer-events: none;
+  }
+
   /* TOAST */
   .toast {
     position: fixed; bottom: calc(90px + var(--safe-bottom)); left: 50%;
@@ -349,6 +485,63 @@
 </div>
 
 
+
+<!-- MANAGE EXERCISES SHEET -->
+<div class="manage-overlay" id="manageModal" onclick="closeManageOutside(event)">
+  <div class="manage-sheet" id="manageSheet">
+    <div class="manage-header">
+      <div class="manage-handle"></div>
+      <div class="manage-title-row">
+        <div class="manage-title" id="manageTitle">MANAGE EXERCISES</div>
+        <button class="manage-close" onclick="closeManageModal()">✕</button>
+      </div>
+    </div>
+    <div class="manage-body">
+      <div class="manage-ex-list" id="manageExList"></div>
+      <div class="add-ex-section">
+        <div class="add-ex-title">+ ADD EXERCISE</div>
+        <div class="add-field-label">Exercise Name</div>
+        <input class="add-field-input" type="text" id="addExName" placeholder="e.g. Romanian Deadlift" maxlength="50">
+        <div class="add-field-row">
+          <div class="add-field-group">
+            <div class="add-field-label">Sets</div>
+            <input class="add-field-input" type="number" inputmode="numeric" id="addExSets" placeholder="3" min="1" max="10">
+          </div>
+          <div class="add-field-group">
+            <div class="add-field-label">Reps</div>
+            <input class="add-field-input" type="text" id="addExReps" placeholder="8–12">
+          </div>
+        </div>
+        <div class="add-field-row">
+          <div class="add-field-group">
+            <div class="add-field-label">Starting Weight (kg)</div>
+            <input class="add-field-input" type="number" inputmode="decimal" id="addExWeight" placeholder="20">
+          </div>
+          <div class="add-field-group">
+            <div class="add-field-label">Increment (kg)</div>
+            <input class="add-field-input" type="number" inputmode="decimal" id="addExIncrement" placeholder="2.5">
+          </div>
+        </div>
+        <button class="add-ex-btn" onclick="addExercise()">ADD TO WORKOUT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME EXERCISE MODAL -->
+<div class="rename-overlay" id="renameModal" onclick="closeRenameOutside(event)">
+  <div class="rename-sheet">
+    <div class="rename-handle"></div>
+    <div class="rename-title">RENAME EXERCISE</div>
+    <div class="rename-sub" id="renameSub">Applies to both sessions this week</div>
+    <input class="rename-input" type="text" id="renameInput" placeholder="Exercise name" maxlength="60">
+    <div class="rename-actions">
+      <button class="rename-cancel" onclick="closeRenameModal()">Cancel</button>
+      <button class="rename-save" onclick="saveRename()">SAVE</button>
+    </div>
+    <button class="rename-reset" onclick="resetRename()">Reset to default name</button>
+  </div>
+</div>
 
 <!-- BODY WEIGHT MODAL -->
 <div class="modal-overlay" id="bwModal" onclick="closeBWModalOutside(event)">
@@ -426,13 +619,17 @@ function loadState() { try { return JSON.parse(localStorage.getItem('liftState2'
 function saveState(s) { localStorage.setItem('liftState2', JSON.stringify(s)); }
 
 let state = loadState();
-if (!state.weights)    state.weights    = {};
-if (!state.completed)  state.completed  = {};
-if (!state.sets)       state.sets       = {};
-if (!state.history)    state.history    = [];
-if (!state.prs)        state.prs        = {};   // { exId: { weight, orm, date } }
-if (!state.notes)      state.notes      = {};   // { `${dayKey}_${exId}`: string }
-if (!state.bodyWeight) state.bodyWeight = [];   // [{ date, weight }]
+if (!state.weights)          state.weights          = {};
+if (!state.completed)        state.completed        = {};
+if (!state.sets)             state.sets             = {};
+if (!state.history)          state.history          = [];
+if (!state.prs)              state.prs              = {};
+if (!state.notes)            state.notes            = {};
+if (!state.bodyWeight)       state.bodyWeight       = [];
+if (!state.names)            state.names            = {};
+if (!state.customExercises)  state.customExercises  = {};
+if (!state.removedExercises) state.removedExercises = {};
+if (!state.appliedIncreases) state.appliedIncreases = {};
 
 let currentDayIdx = getTodayIdx();
 
@@ -443,6 +640,209 @@ function getTodayIdx() {
 
 // Weight key is exercise id only (shared across same-id days)
 function weightKey(exId) { return `w_${exId}`; }
+
+// Get display name — custom if set, else default
+function exName(ex) { return state.names[ex.id] || ex.name; }
+
+// ===================== RENAME =====================
+let _renameExId = null;
+let _renameDefault = '';
+
+function openRenameModal(exId, defaultName) {
+  _renameExId = exId;
+  _renameDefault = defaultName;
+  document.getElementById('renameInput').value = state.names[exId] || defaultName;
+  document.getElementById('renameSub').textContent =
+    'Shared across all sessions with this exercise';
+  document.getElementById('renameModal').classList.add('show');
+  setTimeout(() => {
+    const inp = document.getElementById('renameInput');
+    inp.focus(); inp.select();
+  }, 350);
+}
+
+function closeRenameOutside(e) {
+  if (e.target === document.getElementById('renameModal')) closeRenameModal();
+}
+
+function closeRenameModal() {
+  document.getElementById('renameModal').classList.remove('show');
+  _renameExId = null;
+}
+
+function saveRename() {
+  const val = document.getElementById('renameInput').value.trim();
+  if (!val || !_renameExId) { closeRenameModal(); return; }
+  if (val === _renameDefault) {
+    delete state.names[_renameExId];
+  } else {
+    state.names[_renameExId] = val;
+  }
+  saveState(state);
+  closeRenameModal();
+  renderDay();
+  showToast('Exercise renamed!');
+}
+
+function resetRename() {
+  if (!_renameExId) return;
+  delete state.names[_renameExId];
+  saveState(state);
+  closeRenameModal();
+  renderDay();
+  showToast('Name reset to default');
+}
+
+// ===================== MANAGE EXERCISES =====================
+let _manageDayIdx = null;
+
+// Custom exercises stored in state.customExercises = { dayIdx: [exObj, ...] }
+// Removed exercises stored in state.removedExercises = { dayIdx: [exId, ...] }
+
+function getEffectiveExercises(dayIdx) {
+  const base = (SCHEDULE[dayIdx].exercises || []).filter(ex => {
+    const removed = state.removedExercises && state.removedExercises[dayIdx];
+    return !removed || !removed.includes(ex.id);
+  });
+  const custom = (state.customExercises && state.customExercises[dayIdx]) || [];
+  return [...base, ...custom];
+}
+
+function openManageModal(dayIdx) {
+  _manageDayIdx = dayIdx;
+  const day = SCHEDULE[dayIdx];
+  document.getElementById('manageTitle').textContent = `${day.day} · ${day.focus}`;
+  renderManageList();
+  document.getElementById('addExName').value = '';
+  document.getElementById('addExSets').value = '';
+  document.getElementById('addExReps').value = '';
+  document.getElementById('addExWeight').value = '';
+  document.getElementById('addExIncrement').value = '2.5';
+  document.getElementById('manageModal').classList.add('show');
+}
+
+function closeManageOutside(e) {
+  if (e.target === document.getElementById('manageModal')) closeManageModal();
+}
+
+function closeManageModal() {
+  document.getElementById('manageModal').classList.remove('show');
+  _manageDayIdx = null;
+  renderDay();
+}
+
+function renderManageList() {
+  const exercises = getEffectiveExercises(_manageDayIdx);
+  const list = document.getElementById('manageExList');
+  if (exercises.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">No exercises. Add one below.</div>';
+    return;
+  }
+  list.innerHTML = exercises.map((ex) => {
+    const name = exName(ex);
+    return `<div class="manage-ex-item" id="mex_${ex.id}">
+      <div class="manage-ex-info">
+        <div class="manage-ex-name">${name}</div>
+        <div class="manage-ex-meta">${ex.sets} sets · ${ex.reps} reps · +${ex.increment}kg</div>
+      </div>
+      <button class="manage-remove-btn" onclick="confirmRemove('${ex.id}', this)">−</button>
+    </div>`;
+  }).join('');
+}
+
+function confirmRemove(exId, btn) {
+  // First tap: turn button red and show "TAP AGAIN"
+  if (btn.dataset.confirming !== 'true') {
+    btn.dataset.confirming = 'true';
+    btn.style.background = 'rgba(255,77,77,0.15)';
+    btn.style.borderColor = 'var(--red)';
+    btn.style.color = 'var(--red)';
+    btn.style.fontSize = '9px';
+    btn.style.fontWeight = '700';
+    btn.style.letterSpacing = '0.5px';
+    btn.textContent = 'TAP\nAGAIN';
+    // Auto-reset after 3 seconds if not confirmed
+    setTimeout(() => {
+      if (btn.dataset.confirming === 'true') {
+        btn.dataset.confirming = 'false';
+        btn.style.cssText = '';
+        btn.textContent = '−';
+      }
+    }, 3000);
+    return;
+  }
+  // Second tap: actually remove
+  removeExercise(exId);
+}
+
+function removeExercise(exId) {
+  if (!state.removedExercises) state.removedExercises = {};
+  if (!state.removedExercises[_manageDayIdx]) state.removedExercises[_manageDayIdx] = [];
+
+  // If it's a custom exercise, remove from customExercises
+  if (state.customExercises && state.customExercises[_manageDayIdx]) {
+    const ci = state.customExercises[_manageDayIdx].findIndex(e => e.id === exId);
+    if (ci >= 0) {
+      state.customExercises[_manageDayIdx].splice(ci, 1);
+      saveState(state);
+      renderManageList();
+      showToast('Exercise removed');
+      return;
+    }
+  }
+  // It's a base exercise — mark as removed
+  if (!state.removedExercises[_manageDayIdx].includes(exId)) {
+    state.removedExercises[_manageDayIdx].push(exId);
+  }
+  saveState(state);
+  renderManageList();
+  showToast('Exercise removed');
+}
+
+function addExercise() {
+  const name = document.getElementById('addExName').value.trim();
+  const sets = parseInt(document.getElementById('addExSets').value) || 3;
+  const reps = document.getElementById('addExReps').value.trim() || '8–12';
+  const weight = parseFloat(document.getElementById('addExWeight').value) || 0;
+  const increment = parseFloat(document.getElementById('addExIncrement').value) || 2.5;
+
+  if (!name) { showToast('Enter an exercise name'); return; }
+
+  const id = 'custom_' + Date.now();
+  const newEx = { id, name, sets, reps, defaultWeight: weight, unit: 'kg', increment };
+
+  if (!state.customExercises) state.customExercises = {};
+  if (!state.customExercises[_manageDayIdx]) state.customExercises[_manageDayIdx] = [];
+  state.customExercises[_manageDayIdx].push(newEx);
+  saveState(state);
+
+  // Clear form
+  document.getElementById('addExName').value = '';
+  document.getElementById('addExSets').value = '';
+  document.getElementById('addExReps').value = '';
+  document.getElementById('addExWeight').value = '';
+  document.getElementById('addExIncrement').value = '2.5';
+  renderManageList();
+  showToast('✅ Exercise added!');
+}
+
+// ===================== APPLY WEIGHT INCREASE =====================
+function applyWeightIncrease(exId, increment, defaultWeight, btnId) {
+  const k = weightKey(exId);
+  // Use stored weight if set, else fall back to the exercise's default
+  const cur = state.weights[k] !== undefined ? parseFloat(state.weights[k]) : parseFloat(defaultWeight);
+  state.weights[k] = parseFloat((cur + increment).toFixed(2));
+  // Track that we applied so the button stays greyed out after re-render
+  if (!state.appliedIncreases) state.appliedIncreases = {};
+  state.appliedIncreases[exId] = state.weights[k];
+  saveState(state);
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.classList.add('applied');
+    btn.textContent = '✓ WEIGHT UPDATED FOR NEXT SESSION';
+  }
+  showToast(`⬆️ Weight set to ${state.weights[k]}kg`);
+}
 
 // ===================== 1RM (Epley) =====================
 function calc1RM(weight, reps) {
@@ -533,7 +933,7 @@ function renderTabs() {
   });
   setTimeout(() => {
     const active = container.querySelector('.active');
-    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    if (active) active.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
   }, 50);
 }
 
@@ -556,7 +956,7 @@ function renderDay() {
   }
 
   progressWrap.style.display = 'block';
-  const exercises = day.exercises;
+  const exercises = getEffectiveExercises(currentDayIdx);
   const dayKey = currentDayIdx;
   const completedSets = state.sets[dayKey] || {};
   const totalSets = exercises.reduce((a, e) => a + e.sets, 0);
@@ -569,14 +969,17 @@ function renderDay() {
   const allDone = state.completed[dayKey];
 
   let html = `<div class="day-label">${day.label}</div>`;
-  html += `<div class="day-subtitle">${day.focus} Day · ${exercises.length} exercises</div>`;
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">`;
+  html += `<div class="day-subtitle" style="margin-bottom:0">${day.focus} Day · ${exercises.length} exercises</div>`;
+  html += `<button class="manage-day-btn" onclick="openManageModal(${dayKey})">✏️ Edit</button>`;
+  html += `</div>`;
 
   if (allDone) {
     html += `<div class="workout-done show"><div class="done-emoji">🔥</div><div class="done-title">WORKOUT COMPLETE</div><div class="done-sub">Great work. Rest up and come back stronger.</div></div>`;
   }
 
   exercises.forEach((ex, ei) => {
-    const weight = state.weights[weightKey(ex.id)] ?? ex.defaultWeight;
+    const weight = state.weights[weightKey(ex.id)] != null ? state.weights[weightKey(ex.id)] : ex.defaultWeight;
     const setsArr = completedSets[ex.id] || Array(ex.sets).fill(false);
     const allSetsDone = setsArr.every(Boolean) && setsArr.length === ex.sets;
     const noteKey = `${dayKey}_${ex.id}`;
@@ -585,11 +988,18 @@ function renderDay() {
     const pr = state.prs[ex.id];
     const isPR = allSetsDone && pr && orm && orm > pr.orm;
 
+    const displayName = exName(ex);
+    const isCustom = !!state.names[ex.id];
+    const safeDef = ex.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
     html += `<div class="exercise-card${allSetsDone ? ' completed' : ''}${isPR ? ' has-pr' : ''}" id="card_${dayKey}_${ei}">
       <div class="exercise-header" onclick="toggleCard(${dayKey},${ei})">
         <div class="exercise-left">
-          <div class="exercise-number">EXERCISE ${ei + 1}</div>
-          <div class="exercise-name">${ex.name}${isPR ? '<span class="pr-tag">🏆 PR</span>' : ''}</div>
+          <div class="exercise-number">EXERCISE ${ei + 1}${isCustom ? ' · EDITED' : ''}</div>
+          <div class="exercise-name">
+            ${displayName}${isPR ? '<span class="pr-tag">🏆 PR</span>' : ''}
+            <button class="edit-name-btn" onclick="event.stopPropagation();openRenameModal('${ex.id}','${safeDef}')" title="Rename exercise">✏️</button>
+          </div>
           <div class="exercise-meta">${ex.sets} sets · ${ex.reps} reps · ${weight}${ex.unit}${orm ? ' · 1RM ~' + orm + 'kg' : ''}</div>
         </div>
         <div class="exercise-right">
@@ -604,7 +1014,7 @@ function renderDay() {
             <button class="weight-btn" onclick="adjustWeight(${dayKey},'${ex.id}',${-ex.increment},${ei},${ex.defaultWeight})">−</button>
             <input class="weight-input" type="number" inputmode="decimal" value="${weight}"
               onchange="setWeight(${dayKey},'${ex.id}',this.value,${ei})"
-              onclick="this.select()">
+              onfocus="this.select()">
             <span class="weight-unit">${ex.unit}</span>
             <button class="weight-btn" onclick="adjustWeight(${dayKey},'${ex.id}',${ex.increment},${ei},${ex.defaultWeight})">+</button>
           </div>
@@ -629,6 +1039,12 @@ function renderDay() {
         <div class="recommendation${allSetsDone ? ' show' : ''}" id="rec_${dayKey}_${ei}">
           <div class="rec-title">💡 Progression Ready</div>
           <div class="rec-text">All sets done! Next session try <strong>${(weight + ex.increment).toFixed(1)}${ex.unit}</strong> (+${ex.increment}${ex.unit} progressive overload)</div>
+          <button
+            class="apply-weight-btn${allSetsDone ? ' show' : ''}${state.appliedIncreases[ex.id] !== undefined ? ' applied' : ''}"
+            id="applyBtn_${dayKey}_${ei}"
+            onclick="applyWeightIncrease('${ex.id}',${ex.increment},${ex.defaultWeight},'applyBtn_${dayKey}_${ei}')">
+            ${state.appliedIncreases[ex.id] !== undefined ? `✓ WEIGHT UPDATED FOR NEXT SESSION` : `⬆ APPLY +${ex.increment}kg FOR NEXT SESSION`}
+          </button>
         </div>
         <div class="notes-wrap">
           <div class="notes-label">Notes</div>
@@ -669,7 +1085,7 @@ function toggleCard(dayKey, ei) {
 
 function adjustWeight(dayKey, exId, delta, ei, def) {
   const k = weightKey(exId);
-  const cur = parseFloat(state.weights[k] ?? def);
+  const cur = parseFloat(state.weights[k] != null ? state.weights[k] : def);
   state.weights[k] = Math.max(0, parseFloat((cur + delta).toFixed(2)));
   saveState(state);
   renderDay();
@@ -693,19 +1109,20 @@ function toggleSet(dayKey, exId, setIdx, ei, totalSets) {
 
   // Check PR after completing all sets
   const day = SCHEDULE[dayKey];
-  if (day && day.exercises) {
-    const ex = day.exercises[ei];
+  if (day && day.type === 'workout') {
+    const exercises = getEffectiveExercises(dayKey);
+    const ex = exercises[ei];
     if (ex) {
       const sArr = state.sets[dayKey][exId];
       const allDone = sArr && sArr.length === totalSets && sArr.every(Boolean);
       if (allDone) {
-        const weight = state.weights[weightKey(exId)] ?? ex.defaultWeight;
+        const weight = state.weights[weightKey(exId)] != null ? state.weights[weightKey(exId)] : ex.defaultWeight;
         const orm = calc1RM(weight, ex.reps);
         const prev = state.prs[exId];
         if (orm && (!prev || orm > prev.orm)) {
           state.prs[exId] = { weight, orm, date: new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short'}) };
           saveState(state);
-          showToast('🏆 New PR on ' + ex.name + '!');
+          showToast('🏆 New PR on ' + exName(ex) + '!');
         }
       }
     }
@@ -727,7 +1144,7 @@ function completeWorkout(dayKey) {
   state.history.unshift({
     day: day.label, focus: day.focus,
     date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-    exercises: day.exercises.length
+    exercises: getEffectiveExercises(dayKey).length
   });
   if (state.history.length > 50) state.history = state.history.slice(0, 50);
   saveState(state);
@@ -736,9 +1153,9 @@ function completeWorkout(dayKey) {
 }
 
 function resetWeek() {
-  if (!confirm('Reset all progress for this week?')) return;
   state.completed = {};
   state.sets = {};
+  state.appliedIncreases = {};
   saveState(state);
   render();
   showToast('Week reset!');
@@ -758,7 +1175,7 @@ function renderStats() {
   } else {
     // Map exId to name
     const nameMap = {};
-    SCHEDULE.forEach(d => { if (d.exercises) d.exercises.forEach(e => { nameMap[e.id] = e.name; }); });
+    SCHEDULE.forEach(d => { if (d.exercises) d.exercises.forEach(e => { nameMap[e.id] = exName(e); }); });
     prList.innerHTML = prEntries.sort((a,b) => b[1].orm - a[1].orm).map(([id, pr]) => `
       <div class="pr-item">
         <div>
